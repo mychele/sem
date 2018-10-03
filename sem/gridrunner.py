@@ -126,8 +126,11 @@ class GridRunner(SimulationRunner):
             self.run_program((configuration_command), self.path,
                              native_spec=BUILD_GRID_PARAMS)
 
-        self.run_program(('./waf build'), self.path,
-                         native_spec=BUILD_GRID_PARAMS)
+        stdout = self.run_program(('./waf build'), self.path,
+                                  native_spec=BUILD_GRID_PARAMS)
+
+        if "Build failed" in stdout:
+            raise Exception("Compilation ended with an error %s" % stdout)
 
     def get_available_parameters(self):
         """
