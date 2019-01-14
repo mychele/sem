@@ -39,6 +39,11 @@ def cli():
               is_flag=True,
               show_default=True,
               help="Whether to avoid optimization of the build")
+@click.option("--avoid-defaults",
+              default=False,
+              is_flag=True,
+              show_default=True,
+              help="Whether to show defaults for parameters (set to True be slow)")
 @click.option("--parameters",
               type=click.Path(exists=True, readable=True, resolve_path=True),
               default=None,
@@ -52,8 +57,8 @@ def cli():
               show_default=True,
               help="The maximum number of parallel simulations to spawn " +
               "in simulations using ParallelRunner")
-def run(ns_3_path, results_dir, script, no_optimization, parameters,
-        max_processes):
+def run(ns_3_path, results_dir, script, no_optimization, avoid_defaults,
+        parameters, max_processes):
     """
     Run multiple simulations.
     """
@@ -71,8 +76,9 @@ def run(ns_3_path, results_dir, script, no_optimization, parameters,
     click.echo(campaign)
 
     # Run the simulations
-    [params, defaults] = zip(*get_params_and_defaults(campaign.db.get_params(),
-                                                      campaign.db))
+    if not avoid_defaults:
+        [params, defaults] = zip(*get_params_and_defaults(campaign.db.get_params(),
+                                                          campaign.db))
 
     # Check whether we need to read parameters from the command line
     if not parameters:
@@ -216,8 +222,13 @@ def command(results_dir, result_id):
               show_default=True,
               help="File containing the parameter specification,"
                    " in form of a python dictionary")
+@click.option("--avoid-defaults",
+              default=False,
+              is_flag=True,
+              show_default=True,
+              help="Whether to show defaults for parameters (set to True be slow)")
 @click.argument('filename', type=click.Path(resolve_path=True))
-def export(results_dir, filename, do_not_try_parsing, parameters):
+def export(results_dir, filename, do_not_try_parsing, parameters, avoid_defaults):
     """
     Export results to file.
 
@@ -237,8 +248,9 @@ def export(results_dir, filename, do_not_try_parsing, parameters):
 
     campaign = sem.CampaignManager.load(results_dir)
 
-    [params, defaults] = zip(*get_params_and_defaults(campaign.db.get_params(),
-                                                      campaign.db))
+    if not avoid_defaults:
+        [params, defaults] = zip(*get_params_and_defaults(campaign.db.get_params(),
+                                                          campaign.db))
 
     if do_not_try_parsing:
         parsing_function = None
